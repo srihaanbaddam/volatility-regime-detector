@@ -189,6 +189,11 @@ function classifyRegimes(volatility: number[], hurst: number[]): string[] {
   const vHigh = quantile(validVol, 0.66)
   const vMid = quantile(validVol, 0.5)
 
+  // Absolute thresholds (annualized volatility)
+  const ABS_LOW_VOL = 0.15   // 15% - below this is objectively low
+  const ABS_MID_VOL = 0.30   // 30% - above this is never "Low Vol"
+  const ABS_HIGH_VOL = 0.50  // 50% - above this is always "High Vol"
+
   const regimes: string[] = []
 
   for (let i = 0; i < volatility.length; i++) {
@@ -197,13 +202,23 @@ function classifyRegimes(volatility: number[], hurst: number[]): string[] {
 
     if (isNaN(v) || isNaN(h)) {
       regimes.push("Unknown")
-    } else if (v < vLow && h < 0.45) {
+    } else if (v > ABS_HIGH_VOL) {
+      // Absolute override: very high volatility is always High Vol
+      regimes.push("High Vol")
+    } else if (v > ABS_HIGH_VOL * 0.8 && h > 0.55) {
+      // High volatility + trending = Trending
+      regimes.push("Trending")
+    } else if (v < ABS_LOW_VOL && h < 0.45) {
+      regimes.push("Calm")
+    } else if (v < vLow && v < ABS_MID_VOL && h < 0.45) {
+      // Only "Low Vol" if below absolute threshold too
       regimes.push("Calm")
     } else if (v > vHigh && h > 0.55) {
       regimes.push("Trending")
     } else if (v > vHigh || (h > 0.55 && v > vMid)) {
       regimes.push("High Vol")
-    } else if (v < vLow) {
+    } else if (v < vLow && v < ABS_MID_VOL) {
+      // Only "Low Vol" if below absolute mid threshold
       regimes.push("Low Vol")
     } else {
       regimes.push("Transition")
