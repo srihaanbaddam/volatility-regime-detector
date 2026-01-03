@@ -269,15 +269,20 @@ function generateRegimePlot(
   const volMax = Math.max(...validVol)
   const volScale = plotHeight / (volMax - volMin)
 
+  // Dark theme colors
+  const bgColor = "#1a1a1a"
+  const textColor = "#e5e5e5"
+  const gridColor = "#333333"
+
   let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`
-  svg += `<rect width="${width}" height="${height}" fill="white"/>`
+  svg += `<rect width="${width}" height="${height}" fill="${bgColor}"/>`
 
   // Title
-  svg += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="20" font-weight="bold">Volatility Regime Detector</text>`
+  svg += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="${textColor}">Volatility Regime Detector</text>`
 
   // Plot 1: Price with regime backgrounds
   const y1Start = padding + 40
-  svg += `<rect x="${padding}" y="${y1Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="#ddd"/>`
+  svg += `<rect x="${padding}" y="${y1Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="${gridColor}"/>`
 
   // Regime backgrounds
   for (let i = startIdx; i < endIdx; i++) {
@@ -294,12 +299,12 @@ function generateRegimePlot(
     const y = y1Start + plotHeight - (prices[i] - priceMin) * priceScale
     pricePath += ` L${x},${y}`
   }
-  svg += `<path d="${pricePath}" fill="none" stroke="blue" stroke-width="1.5"/>`
-  svg += `<text x="10" y="${y1Start + plotHeight / 2}" font-size="12" fill="#666">Price</text>`
+  svg += `<path d="${pricePath}" fill="none" stroke="#60a5fa" stroke-width="1.5"/>`
+  svg += `<text x="10" y="${y1Start + plotHeight / 2}" font-size="12" fill="${textColor}">Price</text>`
 
   // Plot 2: Volatility
   const y2Start = y1Start + plotHeight + padding
-  svg += `<rect x="${padding}" y="${y2Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="#ddd"/>`
+  svg += `<rect x="${padding}" y="${y2Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="${gridColor}"/>`
 
   let volPath = ""
   for (let i = startIdx; i <= endIdx; i++) {
@@ -314,14 +319,14 @@ function generateRegimePlot(
     }
   }
   if (volPath) {
-    svg += `<path d="${volPath} L${padding + (endIdx - startIdx) * xScale},${y2Start + plotHeight} L${padding},${y2Start + plotHeight} Z" fill="purple" opacity="0.5"/>`
+    svg += `<path d="${volPath} L${padding + (endIdx - startIdx) * xScale},${y2Start + plotHeight} L${padding},${y2Start + plotHeight} Z" fill="#a855f7" opacity="0.5"/>`
   }
-  svg += `<text x="10" y="${y2Start + plotHeight / 2}" font-size="12" fill="#666">Vol</text>`
+  svg += `<text x="10" y="${y2Start + plotHeight / 2}" font-size="12" fill="${textColor}">Vol</text>`
 
   // Plot 3: Hurst
   const y3Start = y2Start + plotHeight + padding
-  svg += `<rect x="${padding}" y="${y3Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="#ddd"/>`
-  svg += `<line x1="${padding}" y1="${y3Start + plotHeight / 2}" x2="${width - padding}" y2="${y3Start + plotHeight / 2}" stroke="black" stroke-width="1"/>`
+  svg += `<rect x="${padding}" y="${y3Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="${gridColor}"/>`
+  svg += `<line x1="${padding}" y1="${y3Start + plotHeight / 2}" x2="${width - padding}" y2="${y3Start + plotHeight / 2}" stroke="${textColor}" stroke-width="1"/>`
 
   let hurstPath = ""
   for (let i = startIdx; i <= endIdx; i++) {
@@ -336,13 +341,13 @@ function generateRegimePlot(
     }
   }
   if (hurstPath) {
-    svg += `<path d="${hurstPath}" fill="none" stroke="darkorange" stroke-width="2"/>`
+    svg += `<path d="${hurstPath}" fill="none" stroke="#fb923c" stroke-width="2"/>`
   }
-  svg += `<text x="10" y="${y3Start + plotHeight / 2}" font-size="12" fill="#666">Hurst</text>`
+  svg += `<text x="10" y="${y3Start + plotHeight / 2}" font-size="12" fill="${textColor}">Hurst</text>`
 
   // Plot 4: Regime bars
   const y4Start = y3Start + plotHeight + padding
-  svg += `<rect x="${padding}" y="${y4Start}" width="${width - 2 * padding}" height="${30}" fill="none" stroke="#ddd"/>`
+  svg += `<rect x="${padding}" y="${y4Start}" width="${width - 2 * padding}" height="${30}" fill="none" stroke="${gridColor}"/>`
 
   for (let i = startIdx; i < endIdx; i++) {
     const x1 = padding + (i - startIdx) * xScale
@@ -357,7 +362,7 @@ function generateRegimePlot(
   let legendX = padding
   for (const [regime, color] of legendItems) {
     svg += `<rect x="${legendX}" y="${legendY}" width="15" height="15" fill="${color}"/>`
-    svg += `<text x="${legendX + 20}" y="${legendY + 12}" font-size="11">${regime}</text>`
+    svg += `<text x="${legendX + 20}" y="${legendY + 12}" font-size="11" fill="${textColor}">${regime}</text>`
     legendX += 100
   }
 
@@ -420,9 +425,14 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
   const plotWidth = (width - 3 * padding) / 2
   const plotHeight = (height - 3 * padding - bottomPadding) / 2
 
+  // Dark theme colors
+  const bgColor = "#1a1a1a"
+  const textColor = "#e5e5e5"
+  const gridColor = "#333333"
+
   let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`
-  svg += `<rect width="${width}" height="${height}" fill="white"/>`
-  svg += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="bold">Regime Statistics</text>`
+  svg += `<rect width="${width}" height="${height}" fill="${bgColor}"/>`
+  svg += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="${textColor}">Regime Statistics</text>`
 
   // Plot 1: Volatility
   const maxVol = Math.max(...Object.values(stats).map((s) => s.vol))
@@ -430,28 +440,28 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
   let x = padding
   const y1Start = padding + 40
 
-  svg += `<text x="${x + plotWidth / 2}" y="${y1Start - 10}" text-anchor="middle" font-size="14">Annualized Volatility</text>`
+  svg += `<text x="${x + plotWidth / 2}" y="${y1Start - 10}" text-anchor="middle" font-size="14" fill="${textColor}">Annualized Volatility</text>`
   uniqueRegimes.forEach((regime, i) => {
     const barHeight = (stats[regime].vol / maxVol) * plotHeight
     const barX = x + i * (plotWidth / uniqueRegimes.length) + 5
     svg += `<rect x="${barX}" y="${y1Start + plotHeight - barHeight}" width="${barWidth}" height="${barHeight}" fill="${colors[regime]}"/>`
-    svg += `<text x="${barX + barWidth / 2}" y="${y1Start + plotHeight + 20}" text-anchor="end" font-size="10" transform="rotate(-45 ${barX + barWidth / 2} ${y1Start + plotHeight + 20})">${regime}</text>`
-    svg += `<text x="${barX + barWidth / 2}" y="${y1Start + plotHeight - barHeight - 5}" text-anchor="middle" font-size="9">${(stats[regime].vol * 100).toFixed(1)}%</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${y1Start + plotHeight + 20}" text-anchor="end" font-size="10" fill="${textColor}" transform="rotate(-45 ${barX + barWidth / 2} ${y1Start + plotHeight + 20})">${regime}</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${y1Start + plotHeight - barHeight - 5}" text-anchor="middle" font-size="9" fill="${textColor}">${(stats[regime].vol * 100).toFixed(1)}%</text>`
   })
 
   // Plot 2: Returns
   const maxRet = Math.max(...Object.values(stats).map((s) => Math.abs(s.ret)))
   x = padding + plotWidth + padding
 
-  svg += `<text x="${x + plotWidth / 2}" y="${y1Start - 10}" text-anchor="middle" font-size="14">Annualized Return</text>`
-  svg += `<line x1="${x}" y1="${y1Start + plotHeight / 2}" x2="${x + plotWidth}" y2="${y1Start + plotHeight / 2}" stroke="black" stroke-width="1"/>`
+  svg += `<text x="${x + plotWidth / 2}" y="${y1Start - 10}" text-anchor="middle" font-size="14" fill="${textColor}">Annualized Return</text>`
+  svg += `<line x1="${x}" y1="${y1Start + plotHeight / 2}" x2="${x + plotWidth}" y2="${y1Start + plotHeight / 2}" stroke="${gridColor}" stroke-width="1"/>`
   uniqueRegimes.forEach((regime, i) => {
     const barHeight = Math.abs(stats[regime].ret / maxRet) * (plotHeight / 2)
     const barX = x + i * (plotWidth / uniqueRegimes.length) + 5
     const barY = stats[regime].ret >= 0 ? y1Start + plotHeight / 2 - barHeight : y1Start + plotHeight / 2
     svg += `<rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" fill="${colors[regime]}"/>`
-    svg += `<text x="${barX + barWidth / 2}" y="${y1Start + plotHeight + 20}" text-anchor="end" font-size="10" transform="rotate(-45 ${barX + barWidth / 2} ${y1Start + plotHeight + 20})">${regime}</text>`
-    svg += `<text x="${barX + barWidth / 2}" y="${barY - 5}" text-anchor="middle" font-size="9">${(stats[regime].ret * 100).toFixed(1)}%</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${y1Start + plotHeight + 20}" text-anchor="end" font-size="10" fill="${textColor}" transform="rotate(-45 ${barX + barWidth / 2} ${y1Start + plotHeight + 20})">${regime}</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${barY - 5}" text-anchor="middle" font-size="9" fill="${textColor}">${(stats[regime].ret * 100).toFixed(1)}%</text>`
   })
 
   // Plot 3: Sharpe
@@ -459,28 +469,28 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
   x = padding
   const y2Start = y1Start + plotHeight + padding + 50
 
-  svg += `<text x="${x + plotWidth / 2}" y="${y2Start - 10}" text-anchor="middle" font-size="14">Sharpe Ratio</text>`
-  svg += `<line x1="${x}" y1="${y2Start + plotHeight / 2}" x2="${x + plotWidth}" y2="${y2Start + plotHeight / 2}" stroke="black" stroke-width="1"/>`
+  svg += `<text x="${x + plotWidth / 2}" y="${y2Start - 10}" text-anchor="middle" font-size="14" fill="${textColor}">Sharpe Ratio</text>`
+  svg += `<line x1="${x}" y1="${y2Start + plotHeight / 2}" x2="${x + plotWidth}" y2="${y2Start + plotHeight / 2}" stroke="${gridColor}" stroke-width="1"/>`
   uniqueRegimes.forEach((regime, i) => {
     const barHeight = Math.abs(stats[regime].sharpe / maxSharpe) * (plotHeight / 2)
     const barX = x + i * (plotWidth / uniqueRegimes.length) + 5
     const barY = stats[regime].sharpe >= 0 ? y2Start + plotHeight / 2 - barHeight : y2Start + plotHeight / 2
     svg += `<rect x="${barX}" y="${barY}" width="${barWidth}" height="${barHeight}" fill="${colors[regime]}"/>`
-    svg += `<text x="${barX + barWidth / 2}" y="${y2Start + plotHeight + 20}" text-anchor="end" font-size="10" transform="rotate(-45 ${barX + barWidth / 2} ${y2Start + plotHeight + 20})">${regime}</text>`
-    svg += `<text x="${barX + barWidth / 2}" y="${barY - 5}" text-anchor="middle" font-size="9">${stats[regime].sharpe.toFixed(2)}</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${y2Start + plotHeight + 20}" text-anchor="end" font-size="10" fill="${textColor}" transform="rotate(-45 ${barX + barWidth / 2} ${y2Start + plotHeight + 20})">${regime}</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${barY - 5}" text-anchor="middle" font-size="9" fill="${textColor}">${stats[regime].sharpe.toFixed(2)}</text>`
   })
 
   // Plot 4: Duration
   const maxDur = Math.max(...Object.values(stats).map((s) => s.duration))
   x = padding + plotWidth + padding
 
-  svg += `<text x="${x + plotWidth / 2}" y="${y2Start - 10}" text-anchor="middle" font-size="14">Avg Duration (Days)</text>`
+  svg += `<text x="${x + plotWidth / 2}" y="${y2Start - 10}" text-anchor="middle" font-size="14" fill="${textColor}">Avg Duration (Days)</text>`
   uniqueRegimes.forEach((regime, i) => {
     const barHeight = (stats[regime].duration / maxDur) * plotHeight
     const barX = x + i * (plotWidth / uniqueRegimes.length) + 5
     svg += `<rect x="${barX}" y="${y2Start + plotHeight - barHeight}" width="${barWidth}" height="${barHeight}" fill="${colors[regime]}"/>`
-    svg += `<text x="${barX + barWidth / 2}" y="${y2Start + plotHeight + 20}" text-anchor="end" font-size="10" transform="rotate(-45 ${barX + barWidth / 2} ${y2Start + plotHeight + 20})">${regime}</text>`
-    svg += `<text x="${barX + barWidth / 2}" y="${y2Start + plotHeight - barHeight - 5}" text-anchor="middle" font-size="9">${stats[regime].duration.toFixed(1)}</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${y2Start + plotHeight + 20}" text-anchor="end" font-size="10" fill="${textColor}" transform="rotate(-45 ${barX + barWidth / 2} ${y2Start + plotHeight + 20})">${regime}</text>`
+    svg += `<text x="${barX + barWidth / 2}" y="${y2Start + plotHeight - barHeight - 5}" text-anchor="middle" font-size="9" fill="${textColor}">${stats[regime].duration.toFixed(1)}</text>`
   })
 
   svg += `</svg>`
