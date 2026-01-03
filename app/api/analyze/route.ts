@@ -87,7 +87,7 @@ function rollingVolatility(returns: number[], window: number): number[] {
     }
 
     const mean = slice.reduce((sum, v) => sum + v, 0) / slice.length
-    const variance = slice.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / slice.length
+    const variance = slice.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (slice.length - 1)
     const std = Math.sqrt(variance)
     vol.push(std * Math.sqrt(252)) // Annualized
   }
@@ -403,18 +403,16 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
     const regimeReturns = indices.map((i) => returns[i]).filter((r) => !isNaN(r))
     const regimeVol = indices.map((i) => volatility[i]).filter((v) => !isNaN(v))
 
+    if (regimeReturns.length === 0 || regimeVol.length === 0) continue
+
     const avgVol = regimeVol.reduce((sum, v) => sum + v, 0) / regimeVol.length
-    const avgRet = (regimeReturns.reduce((sum, v) => sum + v, 0) / regimeReturns.length) * 252
-    const retStd =
-      Math.sqrt(
-        regimeReturns.reduce(
-          (sum, v) => sum + Math.pow(v - regimeReturns.reduce((s, x) => s + x, 0) / regimeReturns.length, 2),
-          0,
-        ) / regimeReturns.length,
-      ) * Math.sqrt(252)
+    const meanRet = regimeReturns.reduce((sum, v) => sum + v, 0) / regimeReturns.length
+    const avgRet = meanRet * 252 // Annualized return
+    const retVariance = regimeReturns.reduce((sum, v) => sum + Math.pow(v - meanRet, 2), 0) / (regimeReturns.length - 1 || 1)
+    const retStd = Math.sqrt(retVariance) * Math.sqrt(252) // Annualized std
     const sharpe = retStd > 0 ? avgRet / retStd : 0
 
-    // Duration
+    // Duration - count consecutive days in this regime
     const durations: number[] = []
     let currDur = 0
     for (let i = 0; i < regimes.length; i++) {
@@ -424,6 +422,10 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
         durations.push(currDur)
         currDur = 0
       }
+    }
+    // Don't forget the last duration if regime extends to end
+    if (currDur > 0) {
+      durations.push(currDur)
     }
     const avgDuration = durations.length > 0 ? durations.reduce((sum, d) => sum + d, 0) / durations.length : 0
 
