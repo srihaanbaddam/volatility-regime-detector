@@ -244,9 +244,9 @@ function generateRegimePlot(
   }
 
   const width = 1200
-  const height = 900
-  const padding = 60
-  const plotHeight = (height - 4 * padding) / 4
+  const height = 800
+  const padding = 50
+  const plotHeight = (height - 5 * padding) / 4
 
   // Filter valid indices
   const validIndices = regimes.map((r, i) => (r !== "Unknown" ? i : -1)).filter((i) => i >= 0)
@@ -277,11 +277,8 @@ function generateRegimePlot(
   let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`
   svg += `<rect width="${width}" height="${height}" fill="${bgColor}"/>`
 
-  // Title
-  svg += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="${textColor}">Volatility Regime Detector</text>`
-
-  // Plot 1: Price with regime backgrounds
-  const y1Start = padding + 40
+  // Plot 1: Price with regime backgrounds (no main title - UI handles that)
+  const y1Start = padding
   svg += `<rect x="${padding}" y="${y1Start}" width="${width - 2 * padding}" height="${plotHeight}" fill="none" stroke="${gridColor}"/>`
 
   // Regime backgrounds
@@ -419,11 +416,11 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
   }
 
   const width = 1000
-  const height = 700
+  const height = 650
   const padding = 80
   const bottomPadding = 60
   const plotWidth = (width - 3 * padding) / 2
-  const plotHeight = (height - 3 * padding - bottomPadding) / 2
+  const plotHeight = (height - 2 * padding - bottomPadding) / 2
 
   // Dark theme colors
   const bgColor = "#1a1a1a"
@@ -432,13 +429,12 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
 
   let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`
   svg += `<rect width="${width}" height="${height}" fill="${bgColor}"/>`
-  svg += `<text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="${textColor}">Regime Statistics</text>`
 
-  // Plot 1: Volatility
+  // Plot 1: Volatility (no main title - UI handles that)
   const maxVol = Math.max(...Object.values(stats).map((s) => s.vol))
   const barWidth = plotWidth / uniqueRegimes.length - 10
   let x = padding
-  const y1Start = padding + 40
+  const y1Start = padding
 
   svg += `<text x="${x + plotWidth / 2}" y="${y1Start - 10}" text-anchor="middle" font-size="14" fill="${textColor}">Annualized Volatility</text>`
   uniqueRegimes.forEach((regime, i) => {
