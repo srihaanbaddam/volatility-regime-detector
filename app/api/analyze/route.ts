@@ -512,12 +512,35 @@ function generateStatsPlot(returns: number[], volatility: number[], regimes: str
 }
 
 function getRecommendation(regime: string): { strategy: string; risk: string; action: string } {
+  // Updated recommendations based on proper options Greeks understanding:
+  // - Low vol = vol is cheap → buy options (long vega/gamma), beware vomma/vanna risk on short positions
+  // - High vol = vol is expensive → can sell premium, but hedge tail risk
   const recs: Record<string, { strategy: string; risk: string; action: string }> = {
-    Calm: { strategy: "Mean Reversion", risk: "Low", action: "Sell options, pairs trade" },
-    "Low Vol": { strategy: "Range Trading", risk: "Low", action: "Sell options, iron condors" },
-    Trending: { strategy: "Trend Following", risk: "High", action: "Momentum, breakouts, buy options" },
-    "High Vol": { strategy: "Hedging", risk: "High", action: "Buy options, VIX, reduce exposure" },
-    Transition: { strategy: "Caution", risk: "Medium", action: "Reduce exposure, wait for clarity" },
+    Calm: { 
+      strategy: "Long Gamma", 
+      risk: "Low", 
+      action: "Buy cheap options, straddles - vol is underpriced" 
+    },
+    "Low Vol": { 
+      strategy: "Long Volatility", 
+      risk: "Medium", 
+      action: "Buy options (vol is cheap), long straddles/strangles, avoid short gamma" 
+    },
+    Trending: { 
+      strategy: "Trend Following", 
+      risk: "High", 
+      action: "Directional plays, momentum, consider debit spreads" 
+    },
+    "High Vol": { 
+      strategy: "Short Volatility", 
+      risk: "High", 
+      action: "Sell expensive premium, iron condors, credit spreads - but hedge tails" 
+    },
+    Transition: { 
+      strategy: "Neutral", 
+      risk: "Medium", 
+      action: "Reduce size, delta-neutral strategies, wait for regime clarity" 
+    },
   }
 
   return recs[regime] || { strategy: "Unknown", risk: "Unknown", action: "Insufficient data" }
