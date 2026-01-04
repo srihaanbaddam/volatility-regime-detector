@@ -11,8 +11,21 @@ async function fetchStockData(ticker: string, startDate: string, endDate: string
   const period1 = Math.floor(new Date(startDate).getTime() / 1000)
   const period2 = Math.floor(new Date(endDate).getTime() / 1000)
 
+  // Handle special index tickers that need ^ prefix for Yahoo Finance
+  const indexTickers: Record<string, string> = {
+    "VIX": "^VIX",
+    "SPX": "^SPX",
+    "GSPC": "^GSPC",
+    "DJI": "^DJI",
+    "IXIC": "^IXIC",
+    "RUT": "^RUT",
+    "TNX": "^TNX",
+    "VXN": "^VXN",
+  }
+  const yahooTicker = indexTickers[ticker] || ticker
+
   // Use the v8 API endpoint instead of download endpoint
-  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?period1=${period1}&period2=${period2}&interval=1d`
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooTicker)}?period1=${period1}&period2=${period2}&interval=1d`
 
   try {
     const response = await fetch(url, {
@@ -558,7 +571,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Ticker symbol is required" }, { status: 400 })
     }
 
-    const cleanTicker = ticker.trim().toUpperCase()
+    const cleanTicker = ticker.trim().toUpperCase().replace(/^\^/, "") // Remove ^ prefix, we'll add it back if needed
     if (!/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(cleanTicker) && !/^[A-Z0-9\-\.]+$/.test(cleanTicker)) {
       return NextResponse.json({ error: "Invalid ticker symbol format" }, { status: 400 })
     }
