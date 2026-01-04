@@ -18,6 +18,9 @@ interface AnalysisResult {
   date: string
   regimePlotUrl: string
   statsPlotUrl: string
+  volPercentile: number
+  daysSinceChange: number
+  confidence: string
 }
 
 export default function VolatilityDetectorPage() {
@@ -51,7 +54,8 @@ export default function VolatilityDetectorPage() {
       })
 
       if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.statusText}`)
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Analysis failed: ${response.statusText}`)
       }
 
       const data = await response.json()
@@ -177,6 +181,9 @@ export default function VolatilityDetectorPage() {
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Regime</p>
                     <p className="text-2xl font-bold">{result.regime}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {result.daysSinceChange} days • {result.confidence} confidence
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Strategy</p>
@@ -185,6 +192,9 @@ export default function VolatilityDetectorPage() {
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Volatility</p>
                     <p className="text-2xl font-bold font-mono">{result.volatility}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {result.volPercentile}th percentile
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Hurst Exponent</p>

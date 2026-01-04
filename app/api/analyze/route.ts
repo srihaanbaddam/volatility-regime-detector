@@ -553,8 +553,32 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Analysis request:", { ticker, startDate, endDate, volWindow, hurstWindow })
 
+    // Input validation
+    if (!ticker || typeof ticker !== "string") {
+      return NextResponse.json({ error: "Ticker symbol is required" }, { status: 400 })
+    }
+
+    const cleanTicker = ticker.trim().toUpperCase()
+    if (!/^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(cleanTicker) && !/^[A-Z0-9\-\.]+$/.test(cleanTicker)) {
+      return NextResponse.json({ error: "Invalid ticker symbol format" }, { status: 400 })
+    }
+
+    if (!startDate || !endDate) {
+      return NextResponse.json({ error: "Start and end dates are required" }, { status: 400 })
+    }
+
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return NextResponse.json({ error: "Invalid date format" }, { status: 400 })
+    }
+
+    if (start >= end) {
+      return NextResponse.json({ error: "Start date must be before end date" }, { status: 400 })
+    }
+
     // Fetch data
-    const data = await fetchStockData(ticker, startDate, endDate)
+    const data = await fetchStockData(cleanTicker, startDate, endDate)
     if (data.length < Math.max(volWindow, hurstWindow) + 10) {
       return NextResponse.json({ error: "Insufficient data for analysis" }, { status: 400 })
     }
@@ -585,6 +609,37 @@ export async function POST(request: NextRequest) {
 
     const { strategy, risk, action } = getRecommendation(currentRegime)
 
+    // Calculate volatility percentile (where current vol sits in historical range)
+    const validVols = volatility.filter((v) => !isNaN(v))
+    const sortedVols = [...validVols].sort((a, b) => a - b)
+    const volRank = sortedVols.findIndex((v) => v >= currentVol)
+    const volPercentile = validVols.length > 0 ? Math.round((volRank / validVols.length) * 100) : 50
+
+    // Calculate days since last regime change
+    let daysSinceChange = 0
+    for (let i = lastIdx; i >= 0; i--) {
+      if (regimes[i] === currentRegime || regimes[i] === "Unknown") {
+        daysSinceChange++
+      } else {
+        break
+      }
+    }
+
+    // Calculate regime confidence based on how far from thresholds
+    const ABS_LOW_VOL = 0.15
+    const ABS_MID_VOL = 0.30
+    const ABS_HIGH_VOL = 0.50
+    let confidence = "Medium"
+    if (currentRegime === "Calm" || currentRegime === "Low Vol") {
+      if (currentVol < ABS_LOW_VOL * 0.7) confidence = "High"
+      else if (currentVol > ABS_LOW_VOL * 0.9) confidence = "Low"
+    } else if (currentRegime === "High Vol") {
+      if (currentVol > ABS_HIGH_VOL * 1.3) confidence = "High"
+      else if (currentVol < ABS_HIGH_VOL * 1.1) confidence = "Low"
+    } else if (currentRegime === "Transition") {
+      confidence = "Low" // Transition is inherently uncertain
+    }
+
     // Generate plots
     const regimePlotUrl = generateRegimePlot(dates, prices, volatility, hurst, regimes)
     const statsPlotUrl = generateStatsPlot(returns, volatility, regimes)
@@ -600,6 +655,10 @@ export async function POST(request: NextRequest) {
       date: currentDate,
       regimePlotUrl,
       statsPlotUrl,
+      // New fields
+      volPercentile,
+      daysSinceChange,
+      confidence,
     }
 
     console.log("[v0] Analysis complete:", { regime: currentRegime, date: currentDate })
