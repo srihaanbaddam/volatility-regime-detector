@@ -80,32 +80,27 @@ def classify(vol, hurst):
     v, h = vol.loc[common], hurst.loc[common]
     v_lo, v_hi, v_mid = v.quantile(0.33), v.quantile(0.66), v.quantile(0.5)
     
-    # Absolute thresholds (annualized volatility)
-    ABS_LOW_VOL = 0.15   # 15% - below this is objectively low
-    ABS_MID_VOL = 0.30   # 30% - above this is never "Low Vol"
-    ABS_HIGH_VOL = 0.50  # 50% - above this is always "High Vol"
+    ABS_LOW_VOL = 0.15
+    ABS_MID_VOL = 0.30
+    ABS_HIGH_VOL = 0.50
     
     regimes = []
     for vi, hi in zip(v.values, h.values):
         if pd.isna(vi) or pd.isna(hi):
             regimes.append("Unknown")
         elif vi > ABS_HIGH_VOL:
-            # Absolute override: very high volatility is always High Vol
             regimes.append("High Vol")
         elif vi > ABS_HIGH_VOL * 0.8 and hi > 0.55:
-            # High volatility + trending = Trending
             regimes.append("Trending")
         elif vi < ABS_LOW_VOL and hi < 0.45:
             regimes.append("Calm")
         elif vi < v_lo and vi < ABS_LOW_VOL and hi < 0.45:
-            # Relatively low AND below absolute threshold AND mean-reverting
             regimes.append("Calm")
         elif vi > v_hi and hi > 0.55:
             regimes.append("Trending")
         elif vi > v_hi or (hi > 0.55 and vi > v_mid):
             regimes.append("High Vol")
         elif vi < v_lo and vi < ABS_MID_VOL:
-            # Only "Low Vol" if below absolute mid threshold
             regimes.append("Low Vol")
         else:
             regimes.append("Transition")
@@ -158,7 +153,6 @@ def plot_regimes(ticker, prices, regimes, hurst, ann_vol):
     plt.xlabel('Date')
     plt.tight_layout()
     
-    # Convert to base64
     buf = BytesIO()
     plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
     buf.seek(0)
@@ -212,7 +206,6 @@ def plot_stats(ticker, prices, regimes, vol):
             if curr in durations:
                 durations[curr].append(dur)
             curr, dur = regimes.iloc[i], 1
-    # Don't forget the last duration if regime extends to end
     if curr in durations:
         durations[curr].append(dur)
     data = {r: np.mean(d) if d else 0 for r, d in durations.items()}
@@ -222,7 +215,6 @@ def plot_stats(ticker, prices, regimes, vol):
     
     plt.tight_layout()
     
-    # Convert to base64
     buf = BytesIO()
     plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
     buf.seek(0)
@@ -233,9 +225,6 @@ def plot_stats(ticker, prices, regimes, vol):
 
 
 def get_recommendation(regime):
-    # Updated recommendations based on proper options Greeks understanding:
-    # - Low vol = vol is cheap → buy options (long vega/gamma)
-    # - High vol = vol is expensive → can sell premium, but hedge tail risk
     recs = {
         "Calm": ("Long Gamma", "Low", "Buy cheap options, straddles - vol is underpriced"),
         "Low Vol": ("Long Volatility", "Medium", "Buy options (vol is cheap), long straddles/strangles, avoid short gamma"),
