@@ -223,8 +223,8 @@ function classifyRegimes(volatility: number[], hurst: number[]): string[] {
       regimes.push("Trending")
     } else if (v < ABS_LOW_VOL && h < 0.45) {
       regimes.push("Calm")
-    } else if (v < vLow && v < ABS_MID_VOL && h < 0.45) {
-      // Only "Low Vol" if below absolute threshold too
+    } else if (v < vLow && v < ABS_LOW_VOL && h < 0.45) {
+      // Relatively low AND below absolute low threshold AND mean-reverting
       regimes.push("Calm")
     } else if (v > vHigh && h > 0.55) {
       regimes.push("Trending")
